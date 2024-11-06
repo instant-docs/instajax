@@ -1,1 +1,1 @@
-export function init({ errorHTML: string }): void;
+export default function ({ errorHTML: string }): void;

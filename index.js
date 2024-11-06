@@ -10,10 +10,10 @@ let context = {
 function updateState(mode, url) {
     switch (mode) {
         case 'push':
-            history.pushState(null, null, url);
+            history.pushState(null, '', url);
             break;
         case 'replace':
-            history.replaceState(null, null, url);
+            history.replaceState(null, '', url);
             break;
         case 'pop':
             break;
@@ -78,11 +78,7 @@ function handleAnchors() {
     });
 }
 
-export async function init({ errorHTML = defaultErrorTemplate } = {}) {
-    if (errorHTML.startsWith('url(')) {
-        errorHTML = await fetch(errorHTML.slice(5, -2)).then((res) => res.text());
-    }
-    context.errorTemplate = errorHTML;
+async function init() {
     window.addEventListener('load', () => {
         if (!context.initialized) {
             handleAnchors();
@@ -95,4 +91,15 @@ export async function init({ errorHTML = defaultErrorTemplate } = {}) {
     window.addEventListener('popstate', async () => {
         await loadPage(location.href, 'pop');
     });
+}
+
+init();
+
+export default async function setContext({
+    errorHTML = defaultErrorTemplate
+} = {}) {
+    if (errorHTML.startsWith('url(')) {
+        errorHTML = await fetch(errorHTML.slice(5, -2)).then((res) => res.text());
+    }
+    context.errorTemplate = errorHTML;
 }
