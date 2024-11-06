@@ -1,0 +1,59 @@
+{
+    "name": "instajax",
+    "version": "0.0.3",
+    "description": "Instantly move your multi page application navigations to AJAX",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "pretty": "prettier --write ."
+    },
+    "keywords": [
+        "js",
+        "ajax",
+        "navigation",
+        "route",
+        "history",
+        "spa",
+        "single page application",
+        "faster",
+        "performance",
+        "instant",
+        "fast",
+        "load",
+        "quick",
+        "web development",
+        "javascript",
+        "node.js",
+        "browser",
+        "html",
+        "php",
+        "navigate",
+        "mpa",
+        "multi-page application",
+        "router",
+        "routing",
+        "url",
+        "location",
+        "window",
+        "history API",
+        "pushState",
+        "replaceState",
+        "popstate",
+        "xml",
+        "http request",
+        "xmlhttprequest",
+        "fetch"
+    ],
+    "author": {
+        "name": "Ufuk Bakan",
+        "email": "println.ufukbakan@gmail.com",
+        "url": "https://www.linkedin.com/in/ufuk-bakan/"
+    },
+    "license": "AGPL-3.0-only",
+    "dependencies": {
+        "idiomorph": "^0.3.0"
+    },
+    "devDependencies": {
+        "prettier": "^3.3.3"
+    }
+}
