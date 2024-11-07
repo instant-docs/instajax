@@ -1,5 +1,5 @@
 // @ts-check
-import { Idiomorph } from 'idiomorph/dist/idiomorph.esm';
+import { Idiomorph } from '../lib/idiomorph.esm.js';
 
 const domParser = new DOMParser();
 
