@@ -5,7 +5,7 @@ import defaultErrorTemplate from './src/default-error-html.js';
 let context = {
     initialized: false,
     errorTemplate: defaultErrorTemplate,
-    previousPathName: location.pathname
+    previousPathName: location.pathname,
 };
 
 function updateState(mode, url) {
@@ -110,9 +110,7 @@ async function init() {
 
 init();
 
-export default async function setContext({
-    errorHTML = defaultErrorTemplate
-} = {}) {
+export default async function setContext({ errorHTML = defaultErrorTemplate } = {}) {
     if (errorHTML.startsWith('url(')) {
         errorHTML = await fetch(errorHTML.slice(5, -2)).then((res) => res.text());
     }
