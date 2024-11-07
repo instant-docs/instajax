@@ -1,5 +1,5 @@
 export default `
-<main>
+<body>
     <style>
     .error-icon {
         width: 64px;
@@ -38,5 +38,5 @@ export default `
             </svg>
         </button>
     </center>
-</main>
+</body>
 `.trim();
