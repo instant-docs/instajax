@@ -1,12 +1,13 @@
 {
     "name": "instajax",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "description": "Instantly move your multi page application navigations to AJAX",
     "main": "dist/min.js",
     "types": "index.d.ts",
     "type": "module",
     "scripts": {
-        "prepublishOnly": "npm run build",
+        "prepublishOnly": "node pre-publish.js",
+        "postpublish": "node post-publish.js",
         "prepack": "npm run build",
         "pretty": "prettier --write .",
         "build": "node esbuild.js"
