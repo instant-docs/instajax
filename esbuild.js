@@ -33,6 +33,14 @@ Redistribution and use in source and binary forms, with or without modification,
         target: ['es6'],
         sourcemap: false,
         logLevel: 'warning',
+        banner: {
+            js: `/*!
+ * instajax v1.5.0
+ * Author: Ufuk Bakan (println.ufukbakan@gmail.com)
+ * Licensed under AGPL-3.0-only
+ * See https://www.gnu.org/licenses/agpl-3.0.html for more information.
+ */`
+        }
     });
 }
 
