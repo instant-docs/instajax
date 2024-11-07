@@ -2,10 +2,13 @@
     "name": "instajax",
     "version": "1.2.0",
     "description": "Instantly move your multi page application navigations to AJAX",
-    "main": "index.js",
+    "main": "dist/min.js",
     "type": "module",
     "scripts": {
-        "pretty": "prettier --write ."
+        "prepublishOnly": "npm run build",
+        "prepack": "npm run build",
+        "pretty": "prettier --write .",
+        "build": "node esbuild.js"
     },
     "keywords": [
         "js",
@@ -49,11 +52,16 @@
         "email": "println.ufukbakan@gmail.com",
         "url": "https://www.linkedin.com/in/ufuk-bakan/"
     },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/instant-docs/instajax.git"
+    },
     "license": "AGPL-3.0-only",
+    "devDependencies": {
+        "esbuild": "^0.24.0",
+        "prettier": "^3.3.3"
+    },
     "dependencies": {
         "idiomorph": "^0.3.0"
-    },
-    "devDependencies": {
-        "prettier": "^3.3.3"
     }
 }
