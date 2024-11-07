@@ -35,7 +35,7 @@ Redistribution and use in source and binary forms, with or without modification,
         logLevel: 'warning',
         banner: {
             js: `/*!
- * instajax v1.5.0
+ * instajax v1.6.1
  * Author: Ufuk Bakan (println.ufukbakan@gmail.com)
  * Licensed under AGPL-3.0-only
  * See https://www.gnu.org/licenses/agpl-3.0.html for more information.
