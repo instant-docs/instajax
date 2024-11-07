@@ -5,6 +5,7 @@ import defaultErrorTemplate from './src/default-error-html.js';
 let context = {
     initialized: false,
     errorTemplate: defaultErrorTemplate,
+    previousPathName: location.pathname
 };
 
 function updateState(mode, url) {
@@ -24,6 +25,10 @@ function updateState(mode, url) {
 }
 
 async function loadPage(url, mode = 'push') {
+    const progressBar = document.querySelector('.instajax-progress-bar');
+    if (progressBar) {
+        progressBar.classList.add('loading');
+    }
     let html;
     try {
         const response = await fetch(url, {
@@ -80,6 +85,11 @@ function handleAnchors() {
 
 async function init() {
     window.addEventListener('load', () => {
+        context.previousPathName = location.pathname;
+        const progressBar = document.querySelector('.instajax-progress-bar');
+        if (progressBar) {
+            progressBar.classList.remove('loading');
+        }
         if (!context.initialized) {
             handleAnchors();
             onDomChange(handleAnchors);
@@ -89,7 +99,12 @@ async function init() {
 
     // Handle back/forward browser navigation
     window.addEventListener('popstate', async () => {
-        await loadPage(location.href, 'pop');
+        const pathname = location.pathname;
+        const { previousPathName } = context;
+        if (previousPathName !== pathname) {
+            await loadPage(location.href, 'pop');
+        }
+        context.previousPathName = pathname;
     });
 }
 
