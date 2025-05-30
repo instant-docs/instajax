@@ -1,5 +1,5 @@
 // @ts-check
-import morphDom from './src/id-morph-dom.js';
+import morphDom from './src/morph-dom.js';
 import defaultErrorTemplate from './src/default-error-html.js';
 
 let context = {
@@ -40,11 +40,7 @@ async function loadPage(url, mode = 'push') {
     } catch (fetchError) {
         html = context.errorTemplate.replaceAll('%error%', fetchError.message);
     }
-    try {
-        morphDom(html);
-    } catch (morphError) {
-        console.error(morphError);
-    }
+    morphDom(html);
     updateState(mode, url);
     window.dispatchEvent(new Event('load'));
 }
