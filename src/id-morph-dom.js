@@ -10,19 +10,26 @@ export default function morphDOM(htmlString) {
   let newContentRoot;
   let currentDomRoot;
 
-  // If the parsed document contains an <html> element, it's a full document.
-  // Otherwise, it's a fragment.
-  if (doc.documentElement && doc.documentElement.nodeName.toLowerCase() === 'html') {
+  const hasHtmlTag = /<html[^>]*>/i.test(cleanedHtmlString);
+  const hasBodyTag = /<body[^>]*>/i.test(cleanedHtmlString);
+
+  if (hasHtmlTag) {
+    // Input is a full HTML document (e.g., "<html><head>...</head><body>...</body></html>")
     newContentRoot = doc.documentElement;
     currentDomRoot = document.documentElement;
+  } else if (hasBodyTag) {
+    // Input is a <body> fragment (e.g., "<body><div>...</div></body>")
+    newContentRoot = doc.body; // The parsed body contains the content
+    currentDomRoot = document.body;
   } else {
-    // It's a fragment. The content is within doc.body or directly in the temp container.
-    // To handle cases like "<div>...</div>" where doc.body might be empty but children exist,
-    // we need to extract the actual content.
+    // Input is a general HTML fragment (e.g., "<div>...</div>", "<span>...</span>", "Some text")
+    // The DOMParser will wrap this in <html><body>, so we need to extract the children of doc.body
+    // and use a temporary div to hold them for morphing against document.body's children.
     const tempContainer = document.createElement('div');
-    tempContainer.innerHTML = cleanedHtmlString;
-    newContentRoot = tempContainer; // Use the temporary div as the new content root
-    currentDomRoot = document.body; // Morph the body for fragments
+    // Append children from doc.body to tempContainer to get the actual fragment content
+    Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
+    newContentRoot = tempContainer;
+    currentDomRoot = document.body;
   }
 
   // Recursive function to morph individual nodes
@@ -145,12 +152,11 @@ export default function morphDOM(htmlString) {
   }
 
   // Start the morphing process based on the determined roots
-  if (newContentRoot === document.documentElement) {
-    // Full HTML document: morph <html>, which will recursively handle <head> and <body>
+  if (hasHtmlTag || hasBodyTag) {
+    // If it's a full document or a body fragment, morph the root element itself
     morphNode(currentDomRoot, newContentRoot);
   } else {
-    // Partial HTML fragment: morph children of the target root (usually document.body)
-    // This means we need to apply the morphChildren logic directly to the currentDomRoot.
+    // If it's a general fragment, morph the children of the current DOM root (usually body)
     morphChildren(currentDomRoot, newContentRoot);
   }
 }
