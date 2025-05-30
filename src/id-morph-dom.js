@@ -32,39 +32,74 @@ export default function morphDOM(htmlString) {
     // It's a fragment that might be a single element or multiple elements/text nodes.
     // The DOMParser puts these inside doc.body.
     // We need to check if the fragment represents a single top-level element
-    // that we can try to match by ID in the current DOM.
+   // We need to check if the fragment represents a single top-level element
+   // that we can try to match by ID, attributes, or tag name in the current DOM.
 
-    // Check if doc.body contains exactly one element child and no other nodes (like text nodes)
-    const isSingleElementFragment = doc.body.children.length === 1 && doc.body.childNodes.length === 1;
+   const newElement = doc.body.firstElementChild;
+   const isSingleElementFragment = doc.body.children.length === 1 && doc.body.childNodes.length === 1;
 
-    if (isSingleElementFragment && doc.body.firstElementChild.id) {
-      // If it's a single element fragment with an ID, try to find it in the current DOM
-      const newElementId = doc.body.firstElementChild.id;
-      const existingElement = document.getElementById(newElementId);
+   if (isSingleElementFragment && newElement.nodeType === Node.ELEMENT_NODE) {
+     let existingElement = null;
 
-      if (existingElement) {
-        // Found a matching element by ID in the current DOM, morph that specific element
-        newContentRoot = doc.body.firstElementChild;
-        currentDomRoot = existingElement;
-        shouldMorphNode = true;
-      } else {
-        // Single element fragment with ID, but no matching ID in current DOM.
-        // Treat as a general fragment to be appended to body.
-        const tempContainer = document.createElement('div');
-        Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
-        newContentRoot = tempContainer;
-        currentDomRoot = document.body;
-        shouldMorphNode = false; // Will call morphChildren
-      }
-    } else {
-      // It's a general fragment (multiple elements, text nodes, or single element without ID).
-      // Morph children of document.body.
-      const tempContainer = document.createElement('div');
-      Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
-      newContentRoot = tempContainer;
-      currentDomRoot = document.body;
-      shouldMorphNode = false; // Will call morphChildren
+     // 1. Try to find by ID
+     if (newElement.id) {
+       existingElement = document.getElementById(newElement.id);
+     }
+
+     // 2. If no ID match, try to find by attributes
+     if (!existingElement) {
+       // Query all elements with the same tag name in the document
+       const potentialMatches = document.querySelectorAll(newElement.tagName);
+       for (const el of potentialMatches) {
+         if (areAttributesEqual(el, newElement)) {
+           existingElement = el;
+           break;
+         }
+       }
+     }
+
+     // 3. If no attribute match, try to find by the first element with the same tag name
+     if (!existingElement) {
+       existingElement = document.querySelector(newElement.tagName);
+     }
+
+     if (existingElement) {
+       newContentRoot = newElement;
+       currentDomRoot = existingElement;
+       shouldMorphNode = true;
+     } else {
+       // Single element fragment, but no specific match found in current DOM.
+       // Treat as a general fragment to be appended to body.
+       const tempContainer = document.createElement('div');
+       Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
+       newContentRoot = tempContainer;
+       currentDomRoot = document.body;
+       shouldMorphNode = false; // Will call morphChildren
+     }
+   } else {
+     // It's a general fragment (multiple elements, text nodes, or single element without ID/not an element).
+     // Morph children of document.body.
+     const tempContainer = document.createElement('div');
+     Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
+     newContentRoot = tempContainer;
+     currentDomRoot = document.body;
+     shouldMorphNode = false; // Will call morphChildren
+   }
+  }
+
+  // Helper function to compare attributes of two elements
+  function areAttributesEqual(el1, el2) {
+    if (el1.attributes.length !== el2.attributes.length) {
+      return false;
     }
+    for (let i = 0; i < el1.attributes.length; i++) {
+      const attr1 = el1.attributes[i];
+      const attr2Value = el2.getAttribute(attr1.name);
+      if (attr1.value !== attr2Value) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // Recursive function to morph individual nodes
