@@ -1,5 +1,5 @@
 // @ts-check
-import morphDom from './src/morph-dom.js';
+import morphDom from './src/id-morph-dom.js';
 import defaultErrorTemplate from './src/default-error-html.js';
 
 let context = {
