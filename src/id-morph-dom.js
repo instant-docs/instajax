@@ -11,25 +11,60 @@ export default function morphDOM(htmlString) {
   let currentDomRoot;
 
   const hasHtmlTag = /<html[^>]*>/i.test(cleanedHtmlString);
+  const hasHeadTag = /<head[^>]*>/i.test(cleanedHtmlString);
   const hasBodyTag = /<body[^>]*>/i.test(cleanedHtmlString);
 
+  let shouldMorphNode = false; // Flag to determine if morphNode or morphChildren should be called
+
   if (hasHtmlTag) {
-    // Input is a full HTML document (e.g., "<html><head>...</head><body>...</body></html>")
     newContentRoot = doc.documentElement;
     currentDomRoot = document.documentElement;
+    shouldMorphNode = true;
+  } else if (hasHeadTag) {
+    newContentRoot = doc.head;
+    currentDomRoot = document.head;
+    shouldMorphNode = true;
   } else if (hasBodyTag) {
-    // Input is a <body> fragment (e.g., "<body><div>...</div></body>")
-    newContentRoot = doc.body; // The parsed body contains the content
+    newContentRoot = doc.body;
     currentDomRoot = document.body;
+    shouldMorphNode = true;
   } else {
-    // Input is a general HTML fragment (e.g., "<div>...</div>", "<span>...</span>", "Some text")
-    // The DOMParser will wrap this in <html><body>, so we need to extract the children of doc.body
-    // and use a temporary div to hold them for morphing against document.body's children.
-    const tempContainer = document.createElement('div');
-    // Append children from doc.body to tempContainer to get the actual fragment content
-    Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
-    newContentRoot = tempContainer;
-    currentDomRoot = document.body;
+    // It's a fragment that might be a single element or multiple elements/text nodes.
+    // The DOMParser puts these inside doc.body.
+    // We need to check if the fragment represents a single top-level element
+    // that we can try to match by ID in the current DOM.
+
+    // Check if doc.body contains exactly one element child and no other nodes (like text nodes)
+    const isSingleElementFragment = doc.body.children.length === 1 && doc.body.childNodes.length === 1;
+
+    if (isSingleElementFragment && doc.body.firstElementChild.id) {
+      // If it's a single element fragment with an ID, try to find it in the current DOM
+      const newElementId = doc.body.firstElementChild.id;
+      const existingElement = document.getElementById(newElementId);
+
+      if (existingElement) {
+        // Found a matching element by ID in the current DOM, morph that specific element
+        newContentRoot = doc.body.firstElementChild;
+        currentDomRoot = existingElement;
+        shouldMorphNode = true;
+      } else {
+        // Single element fragment with ID, but no matching ID in current DOM.
+        // Treat as a general fragment to be appended to body.
+        const tempContainer = document.createElement('div');
+        Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
+        newContentRoot = tempContainer;
+        currentDomRoot = document.body;
+        shouldMorphNode = false; // Will call morphChildren
+      }
+    } else {
+      // It's a general fragment (multiple elements, text nodes, or single element without ID).
+      // Morph children of document.body.
+      const tempContainer = document.createElement('div');
+      Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
+      newContentRoot = tempContainer;
+      currentDomRoot = document.body;
+      shouldMorphNode = false; // Will call morphChildren
+    }
   }
 
   // Recursive function to morph individual nodes
@@ -151,12 +186,10 @@ export default function morphDOM(htmlString) {
     }
   }
 
-  // Start the morphing process based on the determined roots
-  if (hasHtmlTag || hasBodyTag) {
-    // If it's a full document or a body fragment, morph the root element itself
+  // Start the morphing process based on the determined roots and the 'shouldMorphNode' flag
+  if (shouldMorphNode) {
     morphNode(currentDomRoot, newContentRoot);
   } else {
-    // If it's a general fragment, morph the children of the current DOM root (usually body)
     morphChildren(currentDomRoot, newContentRoot);
   }
 }
