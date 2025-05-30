@@ -17,7 +17,7 @@ files.
 ### CDN Method
 Put the script tag to head of your template HTML. It will initialize automatically.
 ```html
-<script type="module" src="https://unpkg.com/instajax@1.7.0/dist/min.js"></script>
+<script type="module" src="https://unpkg.com/instajax@1.7.1/dist/min.js"></script>
 ```
 
 ### Package Manager Method
