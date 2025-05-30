@@ -11,7 +11,7 @@ esbuild.build({
     logLevel: 'warning',
     banner: {
         js: `/*!
- * instajax v1.6.1
+ * instajax v1.7.0
  * Author: Ufuk Bakan (println.ufukbakan@gmail.com)
  * Licensed under AGPL-3.0-only
  * See https://www.gnu.org/licenses/agpl-3.0.html for more information.
