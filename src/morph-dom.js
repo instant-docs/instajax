@@ -1,18 +1,15 @@
 export default function morphDOM(htmlString) {
-  // 1. Remove <!DOCTYPE html> case-insensitively
-  let cleanedHtmlString = htmlString.replace(/<!DOCTYPE html>/gi, '').trim();
-
-  // 2. Use DOMParser to parse the HTML string
+  // Use DOMParser to parse the HTML string
   const parser = new DOMParser();
-  const doc = parser.parseFromString(cleanedHtmlString, 'text/html');
+  const doc = parser.parseFromString(htmlString, 'text/html');
 
   // Determine the root elements for morphing
   let newContentRoot;
   let currentDomRoot;
 
-  const hasHtmlTag = /<html[^>]*>/i.test(cleanedHtmlString);
-  const hasHeadTag = /<head[^>]*>/i.test(cleanedHtmlString);
-  const hasBodyTag = /<body[^>]*>/i.test(cleanedHtmlString);
+  const hasHtmlTag = /<html[^>]*>/i.test(htmlString);
+  const hasHeadTag = /<head[^>]*>/i.test(htmlString);
+  const hasBodyTag = /<body[^>]*>/i.test(htmlString);
 
   let shouldMorphNode = false; // Flag to determine if morphNode or morphChildren should be called
 
@@ -32,59 +29,59 @@ export default function morphDOM(htmlString) {
     // It's a fragment that might be a single element or multiple elements/text nodes.
     // The DOMParser puts these inside doc.body.
     // We need to check if the fragment represents a single top-level element
-   // We need to check if the fragment represents a single top-level element
-   // that we can try to match by ID, attributes, or tag name in the current DOM.
+    // We need to check if the fragment represents a single top-level element
+    // that we can try to match by ID, attributes, or tag name in the current DOM.
 
-   const newElement = doc.body.firstElementChild;
-   const isSingleElementFragment = doc.body.children.length === 1 && doc.body.childNodes.length === 1;
+    const newElement = doc.body.firstElementChild;
+    const isSingleElementFragment = doc.body.children.length === 1 && doc.body.childNodes.length === 1;
 
-   if (isSingleElementFragment && newElement.nodeType === Node.ELEMENT_NODE) {
-     let existingElement = null;
+    if (isSingleElementFragment && newElement.nodeType === Node.ELEMENT_NODE) {
+      let existingElement = null;
 
-     // 1. Try to find by ID
-     if (newElement.id) {
-       existingElement = document.getElementById(newElement.id);
-     }
+      // 1. Try to find by ID
+      if (newElement.id) {
+        existingElement = document.getElementById(newElement.id);
+      }
 
-     // 2. If no ID match, try to find by attributes
-     if (!existingElement) {
-       // Query all elements with the same tag name in the document
-       const potentialMatches = document.querySelectorAll(newElement.tagName);
-       for (const el of potentialMatches) {
-         if (areAttributesEqual(el, newElement)) {
-           existingElement = el;
-           break;
-         }
-       }
-     }
+      // 2. If no ID match, try to find by attributes
+      if (!existingElement) {
+        // Query all elements with the same tag name in the document
+        const potentialMatches = document.querySelectorAll(newElement.tagName);
+        for (const el of potentialMatches) {
+          if (areAttributesEqual(el, newElement)) {
+            existingElement = el;
+            break;
+          }
+        }
+      }
 
-     // 3. If no attribute match, try to find by the first element with the same tag name
-     if (!existingElement) {
-       existingElement = document.querySelector(newElement.tagName);
-     }
+      // 3. If no attribute match, try to find by the first element with the same tag name
+      if (!existingElement) {
+        existingElement = document.querySelector(newElement.tagName);
+      }
 
-     if (existingElement) {
-       newContentRoot = newElement;
-       currentDomRoot = existingElement;
-       shouldMorphNode = true;
-     } else {
-       // Single element fragment, but no specific match found in current DOM.
-       // Treat as a general fragment to be appended to body.
-       const tempContainer = document.createElement('div');
-       Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
-       newContentRoot = tempContainer;
-       currentDomRoot = document.body;
-       shouldMorphNode = false; // Will call morphChildren
-     }
-   } else {
-     // It's a general fragment (multiple elements, text nodes, or single element without ID/not an element).
-     // Morph children of document.body.
-     const tempContainer = document.createElement('div');
-     Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
-     newContentRoot = tempContainer;
-     currentDomRoot = document.body;
-     shouldMorphNode = false; // Will call morphChildren
-   }
+      if (existingElement) {
+        newContentRoot = newElement;
+        currentDomRoot = existingElement;
+        shouldMorphNode = true;
+      } else {
+        // Single element fragment, but no specific match found in current DOM.
+        // Treat as a general fragment to be appended to body.
+        const tempContainer = document.createElement('div');
+        Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
+        newContentRoot = tempContainer;
+        currentDomRoot = document.body;
+        shouldMorphNode = false; // Will call morphChildren
+      }
+    } else {
+      // It's a general fragment (multiple elements, text nodes, or single element without ID/not an element).
+      // Morph children of document.body.
+      const tempContainer = document.createElement('div');
+      Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
+      newContentRoot = tempContainer;
+      currentDomRoot = document.body;
+      shouldMorphNode = false; // Will call morphChildren
+    }
   }
 
   // Helper function to compare attributes of two elements
@@ -107,6 +104,17 @@ export default function morphDOM(htmlString) {
     // If new node is null, remove old node
     if (!newNode) {
       oldNode.remove();
+      return;
+    }
+
+    if (newNode.nodeName === 'SCRIPT') {
+      const script = document.createElement("script");
+      script.textContent = newNode.textContent;
+      for (const attr of newNode.attributes) {
+        script.setAttribute(attr.name, attr.value);
+      }
+      /**@type {Node} */ const parent = oldNode.parentNode;
+      parent.replaceChild(script, oldNode);
       return;
     }
 
@@ -154,70 +162,70 @@ export default function morphDOM(htmlString) {
 
   // Function to morph children of a parent node
   function morphChildren(oldParent, newParent) {
-    const oldChildren = Array.from(oldParent.childNodes);
     const newChildren = Array.from(newParent.childNodes);
+    const oldChildren = Array.from(oldParent.childNodes);
 
-    // Create a map of old children for efficient lookup, prioritizing IDs
-    const oldChildrenMap = new Map();
-    oldChildren.forEach(child => {
+    const newChildrenMap = new Map();
+    newChildren.forEach(child => {
       if (child.nodeType === Node.ELEMENT_NODE && child.id) {
-        oldChildrenMap.set(child.id, child);
+        newChildrenMap.set(child.id, child);
       }
     });
 
-    let currentOldChild = oldParent.firstChild; // Pointer to the current old child being considered
-    let newIdx = 0;
+    let oldChildIndex = 0;
+    let newChildIndex = 0;
 
-    while (newIdx < newChildren.length) {
-      const newChild = newChildren[newIdx];
-      let matchedOldChild = null;
+    while (oldChildIndex < oldChildren.length || newChildIndex < newChildren.length) {
+      const oldChild = oldChildren[oldChildIndex];
+      const newChild = newChildren[newChildIndex];
 
-      // 1. Try to find a match by ID first (if both are elements and have IDs)
-      if (newChild.nodeType === Node.ELEMENT_NODE && newChild.id) {
-        if (oldChildrenMap.has(newChild.id)) {
-          matchedOldChild = oldChildrenMap.get(newChild.id);
-          // Remove from map to prevent duplicate matches
-          oldChildrenMap.delete(newChild.id);
-        }
+      if (!oldChild && newChild) {
+        // No more old children, append remaining new children
+        oldParent.appendChild(newChild.cloneNode(true));
+        newChildIndex++;
+        continue;
       }
 
-      // 2. If no ID match, try to find a match by type and name in the remaining old children
-      // This is a simple linear scan. For better performance with large lists, more advanced algorithms exist.
-      if (!matchedOldChild) {
-        let tempOldChild = currentOldChild;
-        while (tempOldChild) {
-          if (tempOldChild.nodeType === newChild.nodeType && tempOldChild.nodeName === newChild.nodeName) {
-            matchedOldChild = tempOldChild;
-            break;
-          }
-          tempOldChild = tempOldChild.nextSibling;
-        }
+      if (oldChild && !newChild) {
+        // No more new children, remove remaining old children
+        oldChild.remove();
+        oldChildIndex++;
+        continue;
       }
 
-      if (matchedOldChild) {
-        // Found a match, morph it
-        morphNode(matchedOldChild, newChild);
+      if (!oldChild && !newChild) {
+        // Both exhausted
+        break;
+      }
 
-        // Ensure the matched old child is in the correct position
-        // If the matched old child is not at the current `currentOldChild` position,
-        // it means it needs to be reordered.
-        if (matchedOldChild !== currentOldChild) {
-          oldParent.insertBefore(matchedOldChild, currentOldChild);
+      let matchedNewChild = null;
+
+      // 1. Try to find a match by ID
+      if (oldChild.nodeType === Node.ELEMENT_NODE && oldChild.id && newChildrenMap.has(oldChild.id)) {
+        matchedNewChild = newChildrenMap.get(oldChild.id);
+      }
+
+      // 2. If no ID match, try to find a match by type and name at the current newChildIndex
+      if (!matchedNewChild && newChild.nodeType === oldChild.nodeType && newChild.nodeName === oldChild.nodeName) {
+        matchedNewChild = newChild;
+      }
+
+      if (matchedNewChild) {
+        if (matchedNewChild === newChild) {
+          // Nodes match and are in the correct position, morph them
+          morphNode(oldChild, newChild);
+          oldChildIndex++;
+          newChildIndex++;
+        } else {
+          // Matched newChild is out of order, insert it before current oldChild
+          oldParent.insertBefore(newChild.cloneNode(true), oldChild);
+          newChildIndex++;
         }
-        // Advance the `currentOldChild` pointer to the next sibling after the one we just processed
-        currentOldChild = matchedOldChild.nextSibling;
       } else {
-        // No match found, insert the new child at the current position
-        oldParent.insertBefore(newChild.cloneNode(true), currentOldChild);
+        // No match for oldChild, remove it
+        oldChild.remove();
+        oldChildIndex++;
       }
-      newIdx++;
-    }
-
-    // Remove any remaining old children that were not matched or reused
-    while (currentOldChild) {
-      const nextSibling = currentOldChild.nextSibling; // Store next sibling before removing
-      currentOldChild.remove();
-      currentOldChild = nextSibling;
     }
   }
 

@@ -10,7 +10,8 @@
         "postpublish": "node post-publish.js",
         "prepack": "npm run build",
         "pretty": "prettier --write .",
-        "build": "node esbuild.js"
+        "build": "node esbuild.js",
+        "test": "vitest --run"
     },
     "keywords": [
         "js",
@@ -61,6 +62,8 @@
     "license": "AGPL-3.0-only",
     "devDependencies": {
         "esbuild": "^0.24.0",
-        "prettier": "^3.3.3"
+        "jsdom": "^26.1.0",
+        "prettier": "^3.3.3",
+        "vitest": "^3.2.4"
     }
 }
