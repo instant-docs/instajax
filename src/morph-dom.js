@@ -62,6 +62,19 @@ export default function morphDOM(htmlString) {
       }
       /**@type {Node} */ const parent = oldNode.parentNode;
       parent.replaceChild(script, oldNode);
+      if (script.type === 'module') {
+        const callback = () => queueMicrotask(() => {
+          const scriptClone = document.createElement("script");
+          scriptClone.textContent = script.textContent;
+          for (const attr of script.attributes) {
+            scriptClone.setAttribute(attr.name, attr.value);
+          }
+          parent.insertBefore(scriptClone, script);
+          script.remove();
+          window.removeEventListener('pushstate', callback);
+        });
+        window.addEventListener('pushstate', callback);
+      }
       return;
     }
 

@@ -12,9 +12,11 @@ function updateState(mode, url) {
     switch (mode) {
         case 'push':
             history.pushState(null, '', url);
+            window.dispatchEvent(new Event('pushstate'));
             break;
         case 'replace':
             history.replaceState(null, '', url);
+            window.dispatchEvent(new Event('replacestate'));
             break;
         case 'pop':
             break;
@@ -40,8 +42,8 @@ async function loadPage(url, mode = 'push') {
     } catch (fetchError) {
         html = context.errorTemplate.replaceAll('%error%', fetchError.message);
     }
-    updateState(mode, url);
     morphDom(html);
+    updateState(mode, url);
     window.dispatchEvent(new Event('load'));
 }
 
