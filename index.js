@@ -54,8 +54,8 @@ function onDomChange(callback) {
     observer.observe(document.body, {
         childList: true, // Observe direct children
         subtree: true, // Observe all descendants (not just direct children)
-        attributes: false, // Observe changes to attributes
-        characterData: false, // Observe changes to text content
+        attributes: true, // Observe changes to attributes
+        characterData: true, // Observe changes to text content
     });
 
     // Return the observer so it can be disconnected later if needed
@@ -90,7 +90,8 @@ async function init() {
         }
         if (!context.initialized) {
             handleAnchors();
-            onDomChange(handleAnchors);
+            window.addEventListener('load', handleAnchors);
+            // onDomChange(handleAnchors);
             context.initialized = true;
         }
     });
