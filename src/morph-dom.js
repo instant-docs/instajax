@@ -36,9 +36,9 @@ export default function morphDOM(htmlString) {
   }
 
   function getSelectorForElement(element) {
-    if(element.id) return `#${element.id}`;
-    if(element.className) return `.${element.className}`;
-    if(element.getAttributeNames()[0]) return `[${element.getAttributeNames()[0]}="${element.getAttribute(element.getAttributeNames()[0])}"]`;
+    if (element.id) return `#${element.id}`;
+    if (element.className) return `.${element.className}`;
+    if (element.getAttributeNames()[0]) return `[${element.getAttributeNames()[0]}="${element.getAttribute(element.getAttributeNames()[0])}"]`;
     return element.tagName;
   }
 
@@ -46,6 +46,32 @@ export default function morphDOM(htmlString) {
   function morphNode(oldNode, newNode) {
     if (!newNode) {
       oldNode.remove();
+      return;
+    }
+
+    if (newNode.nodeName === 'SCRIPT') {
+      let replace = false;
+      if (oldNode.textContent !== newNode.textContent) {
+        replace = true;
+      }
+      if (oldNode.attributes.length !== newNode.attributes.length) {
+        replace = true;
+      }
+      for (const attr of newNode.attributes) {
+        if (oldNode.getAttribute(attr.name) !== attr.value) {
+          replace = true;
+        }
+      }
+
+      if (replace) {
+        const script = document.createElement("script");
+        script.textContent = newNode.textContent;
+        for (const attr of newNode.attributes) {
+          script.setAttribute(attr.name, attr.value);
+        }
+        /**@type {Node} */ const parent = oldNode.parentNode;
+        parent.replaceChild(script, oldNode);
+      }
       return;
     }
 
