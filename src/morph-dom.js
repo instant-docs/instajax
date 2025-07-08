@@ -27,54 +27,25 @@ export default function morphDOM(htmlString) {
     // Create a temporary container to hold the new fragment's nodes.
     const tempContainer = document.createElement('div');
     Array.from(doc.body.childNodes).forEach(node => tempContainer.appendChild(node.cloneNode(true)));
-    newContentRoot = tempContainer;
-    currentDomRoot = document.body;
-    shouldMorphNode = false; // Will call morphChildren on document.body
+    const firstChild = tempContainer;
+    const selector = getSelectorForElement(firstChild);
+    currentDomRoot = document.body.querySelector(selector);
+    newContentRoot = currentDomRoot ? tempContainer.firstChild : tempContainer;
+    shouldMorphNode = !!currentDomRoot;
+    currentDomRoot = currentDomRoot || document.body;
   }
 
-  // Helper function to compare attributes of two elements
-  function areAttributesEqual(el1, el2) {
-    if (el1.attributes.length !== el2.attributes.length) {
-      return false;
-    }
-    for (let i = 0; i < el1.attributes.length; i++) {
-      const attr1 = el1.attributes[i];
-      const attr2Value = el2.getAttribute(attr1.name);
-      if (attr1.value !== attr2Value) {
-        return false;
-      }
-    }
-    return true;
+  function getSelectorForElement(element) {
+    if(element.id) return `#${element.id}`;
+    if(element.className) return `.${element.className}`;
+    if(element.getAttributeNames()[0]) return `[${element.getAttributeNames()[0]}="${element.getAttribute(element.getAttributeNames()[0])}"]`;
+    return element.tagName;
   }
 
   // Recursive function to morph individual nodes
   function morphNode(oldNode, newNode) {
     if (!newNode) {
       oldNode.remove();
-      return;
-    }
-
-    if (newNode.nodeName === 'SCRIPT') {
-      const script = document.createElement("script");
-      script.textContent = newNode.textContent;
-      for (const attr of newNode.attributes) {
-        script.setAttribute(attr.name, attr.value);
-      }
-      /**@type {Node} */ const parent = oldNode.parentNode;
-      parent.replaceChild(script, oldNode);
-      if (script.type === 'module') {
-        const callback = () => queueMicrotask(() => {
-          const scriptClone = document.createElement("script");
-          scriptClone.textContent = script.textContent;
-          for (const attr of script.attributes) {
-            scriptClone.setAttribute(attr.name, attr.value);
-          }
-          parent.insertBefore(scriptClone, script);
-          script.remove();
-          window.removeEventListener('pushstate', callback);
-        });
-        window.addEventListener('pushstate', callback);
-      }
       return;
     }
 
