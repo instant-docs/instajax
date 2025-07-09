@@ -1,20 +1,22 @@
 // @ts-check
-import morphDom from './src/morph-dom.js';
+import morphDOM from './src/morph-dom.js';
 import defaultErrorTemplate from './src/default-error-html.js';
 
 let context = {
     initialized: false,
     errorTemplate: defaultErrorTemplate,
-    previousPathName: location.pathname,
+    previousPathName: typeof window !== 'undefined' ? window.location.pathname : '',
 };
 
 function updateState(mode, url) {
     switch (mode) {
         case 'push':
             history.pushState(null, '', url);
+            window.dispatchEvent(new Event('pushstate'));
             break;
         case 'replace':
             history.replaceState(null, '', url);
+            window.dispatchEvent(new Event('replacestate'));
             break;
         case 'pop':
             break;
@@ -40,24 +42,9 @@ async function loadPage(url, mode = 'push') {
     } catch (fetchError) {
         html = context.errorTemplate.replaceAll('%error%', fetchError.message);
     }
-    morphDom(html);
+    morphDOM(html);
     updateState(mode, url);
     window.dispatchEvent(new Event('load'));
-}
-
-function onDomChange(callback) {
-    const observer = new MutationObserver((mutations) => callback(mutations));
-
-    // Observe changes in the entire document
-    observer.observe(document.body, {
-        childList: true, // Observe direct children
-        subtree: true, // Observe all descendants (not just direct children)
-        attributes: false, // Observe changes to attributes
-        characterData: false, // Observe changes to text content
-    });
-
-    // Return the observer so it can be disconnected later if needed
-    return observer;
 }
 
 const handledAnchors = new Set();
@@ -88,7 +75,8 @@ async function init() {
         }
         if (!context.initialized) {
             handleAnchors();
-            onDomChange(handleAnchors);
+            window.addEventListener('load', handleAnchors);
+            // onDomChange(handleAnchors);
             context.initialized = true;
         }
     });
@@ -104,11 +92,20 @@ async function init() {
     });
 }
 
-init();
+if (typeof window !== 'undefined') {
+    init();
+}
 
-export default async function setContext({ errorHTML = defaultErrorTemplate } = {}) {
+export default async function configure({ errorHTML = defaultErrorTemplate, initialPathName = '' } = {}) {
+    if (initialPathName) {
+        context.previousPathName = initialPathName;
+    }
     if (errorHTML.startsWith('url(')) {
         errorHTML = await fetch(errorHTML.slice(5, -2)).then((res) => res.text());
     }
-    context.errorTemplate = errorHTML;
+    if (errorHTML) {
+        context.errorTemplate = errorHTML;
+    }
 }
+
+export { configure, morphDOM };
