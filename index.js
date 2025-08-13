@@ -54,12 +54,12 @@ function handleAnchors() {
         if (handledAnchors.has(anchor)) return;
         anchor.addEventListener('click', (event) => {
             const url = anchor.getAttribute('href') || '#';
-            if (url.lastIndexOf('#') < Math.max(url.lastIndexOf('/'), url.lastIndexOf('?'))) {
-                // Check if it’s an internal link
-                if (url && (!url.startsWith('http') || new URL(url).origin === location.origin)) {
-                    event.preventDefault();
-                    loadPage(url);
-                }
+            const target = anchor.getAttribute('target');
+            if (target === '_blank') return;
+            if (url.lastIndexOf('#') > Math.max(url.lastIndexOf('/'), url.lastIndexOf('?'))) return;
+            if (url && (!url.startsWith('http') || new URL(url).origin === location.origin)) {
+                event.preventDefault();
+                loadPage(url);
             }
         });
         handledAnchors.add(anchor);

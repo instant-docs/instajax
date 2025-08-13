@@ -1,6 +1,6 @@
 {
     "name": "instajax",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "Instantly move your multi page application navigations to AJAX",
     "main": "dist/min.js",
     "types": "index.d.ts",
