@@ -54,10 +54,10 @@ function handleAnchors() {
         if (handledAnchors.has(anchor)) return;
         anchor.addEventListener('click', (event) => {
             const url = anchor.getAttribute('href') || '#';
-            if (url.lastIndexOf('#') < url.lastIndexOf('/')) {
-                event.preventDefault();
+            if (url.lastIndexOf('#') < Math.max(url.lastIndexOf('/'), url.lastIndexOf('?'))) {
                 // Check if it’s an internal link
                 if (url && (!url.startsWith('http') || new URL(url).origin === location.origin)) {
+                    event.preventDefault();
                     loadPage(url);
                 }
             }
