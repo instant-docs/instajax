@@ -26,7 +26,7 @@ function updateState(mode, url) {
     }
 }
 
-async function loadPage(url, mode = 'push') {
+async function loadPage(url, mode = 'push', trigger = document.body) {
     const progressBar = document.querySelector('.instajax-progress-bar');
     if (progressBar) {
         progressBar.classList.add('loading');
@@ -43,6 +43,9 @@ async function loadPage(url, mode = 'push') {
         html = context.errorTemplate.replaceAll('%error%', fetchError.message);
     }
     morphDOM(html);
+    if (!trigger.hasAttribute('data-preserve-scroll')) {
+        window.scrollTo(0, 0);
+    }
     updateState(mode, url);
     window.dispatchEvent(new Event('load'));
 }
@@ -59,7 +62,7 @@ function handleAnchors() {
             if (url.lastIndexOf('#') > Math.max(url.lastIndexOf('/'), url.lastIndexOf('?'))) return;
             if (url && (!url.startsWith('http') || new URL(url).origin === location.origin)) {
                 event.preventDefault();
-                loadPage(url);
+                loadPage(url, 'push', anchor);
             }
         });
         handledAnchors.add(anchor);
