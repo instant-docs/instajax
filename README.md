@@ -36,6 +36,20 @@ Within your HTML, Instajax will handle links automatically without reloading the
 <a href="/new-page" class="skip-instajax">Go to new page without instajax</a>
 ```
 
+## 📜 Scroll Behavior
+By default, Instajax scrolls to the top of the page after a navigation. To keep the current scroll
+position, opt in explicitly with the `data-preserve-scroll` attribute:
+
+```html
+<a href="/new-page" data-preserve-scroll>Keep my scroll position</a>
+```
+
+For browser back/forward navigation, put the attribute on the page's `<body>` element:
+
+```html
+<body data-preserve-scroll>
+```
+
 ## 🎨 Customization
 To customize the error template, you can call the default function with a custom HTML string or URL 
 pointing to an HTML file:
